@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:tns="http://grozeille.org/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://schemas.xmlsoap.org/soap/http" xmlns:ns1="http://grozeille.org" name="MyServiceImplService" targetNamespace="http://grozeille.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema xmlns:tns="http://grozeille.org" xmlns:ns0="http://grozeille.org/" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://grozeille.org">
+      <xsd:import namespace="http://grozeille.org/" />
+      <xsd:complexType name="MyDto">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="data2d" type="ns0:ArrayOfArrayOfString" />
+          <xsd:element minOccurs="0" name="datas" type="ns0:ArrayOfString" />
+          <xsd:element minOccurs="0" name="otherData" type="xsd:string" />
+        </xsd:sequence>
+      </xsd:complexType>
+    </xsd:schema>
+    <xsd:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://grozeille.org/">
+      <xsd:complexType name="ArrayOfString">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="unbounded" name="string" nillable="true" type="xsd:string" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="ArrayOfArrayOfString">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="unbounded" name="ArrayOfString" nillable="true" type="tns:ArrayOfString" />
+        </xsd:sequence>
+      </xsd:complexType>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="testResponse">
+    <wsdl:part name="return" type="ns1:MyDto" />
+  </wsdl:message>
+  <wsdl:message name="test" />
+  <wsdl:portType name="MyService">
+    <wsdl:operation name="test">
+      <wsdl:input name="test" message="tns:test" />
+      <wsdl:output name="testResponse" message="tns:testResponse" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="MyServiceImplServiceSoapBinding" type="tns:MyService">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="rpc" />
+    <wsdl:operation name="test">
+      <soap12:operation soapAction="" style="rpc" />
+      <wsdl:input name="test">
+        <soap12:body use="literal" namespace="http://grozeille.org/" />
+      </wsdl:input>
+      <wsdl:output name="testResponse">
+        <soap12:body use="literal" namespace="http://grozeille.org/" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="MyServiceImplService">
+    <wsdl:port name="MyServiceImplPort" binding="tns:MyServiceImplServiceSoapBinding">
+      <soap12:address location="http://localhost:8080/test-ws/services/WS" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

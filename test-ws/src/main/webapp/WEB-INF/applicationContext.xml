@@ -1,0 +1,77 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:soap="http://cxf.apache.org/bindings/soap"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://cxf.apache.org/bindings/soap http://cxf.apache.org/schemas/configuration/soap.xsd
+		http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd
+		http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+
+	<bean id="myServiceImpl" class="org.grozeille.MyServiceImpl">
+		<property name="jmsTemplate" ref="myJmsTemplate"></property>
+	</bean>
+
+	<jaxws:endpoint id="greeter" address="/WS">
+		<jaxws:binding>
+			<soap:soapBinding version="1.2" />
+		</jaxws:binding>
+		<jaxws:implementor>
+			<ref bean="myServiceImpl" />
+		</jaxws:implementor>
+		<jaxws:dataBinding>
+			<bean class="org.apache.cxf.aegis.databinding.AegisDatabinding" />
+		</jaxws:dataBinding>
+	</jaxws:endpoint>
+
+	<jaxrs:server id="greeterRest" address="/REST">
+		<jaxrs:serviceBeans>
+			<ref bean="myServiceImpl" />
+		</jaxrs:serviceBeans>
+		<jaxrs:extensionMappings>
+			<entry key="xml" value="application/xml" />
+		</jaxrs:extensionMappings>
+		<jaxrs:providers>
+			<!-- <ref bean="jaxbProvider" /> -->
+			<ref bean="aegisProvider" />
+			<ref bean="jsonProvider" />
+		</jaxrs:providers>
+	</jaxrs:server>
+
+	<bean id="jaxbProvider" class="org.apache.cxf.jaxrs.provider.JAXBElementProvider" />
+
+	<bean id="aegisProvider" class="org.apache.cxf.jaxrs.provider.AegisElementProvider" />
+
+	<bean id="jsonProvider" class="org.apache.cxf.jaxrs.provider.JSONProvider" />
+
+	<bean id="jmsFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL">
+			<value>tcp://localhost:61616</value>
+		</property>
+	</bean>
+
+	<!-- Spring JMS Template -->
+	<bean id="myJmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory">
+			<!-- lets wrap in a pool to avoid creating a connection per send -->
+			<bean class="org.springframework.jms.connection.SingleConnectionFactory">
+				<property name="targetConnectionFactory">
+					<ref local="jmsFactory" />
+				</property>
+			</bean>
+		</property>
+		<property name="messageConverter">
+			<bean class="org.grozeille.GenericMessageWriterConverter">
+				<property name="writer" ref="aegisProvider"></property>
+			</bean>
+		</property>
+		<property name="defaultDestination">
+			<bean class="org.apache.activemq.command.ActiveMQQueue">
+				<constructor-arg index="0" value="mathias"/>
+			</bean>
+		</property>
+	</bean>
+</beans>
